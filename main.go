@@ -38,7 +38,7 @@ func postRestaurants(c *gin.Context) {
 		RestaurantId: id,
 		Date: time.Now().String(),
 		Number: nextCheckinNumber,
-		WaitingAt: "",
+		WaitingAt: time.Now().String(),
 		CheckinAt: "",
 		CancelAt: "",
 		FinishAt: "",
@@ -110,11 +110,56 @@ func getRestaurantByID(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, vm)
 }
 
+func patchWaitingList(c *gin.Context) {
+	restaurantId := c.Param("id")
+	waitingListId := c.Param("waitingListId")
+	var request PatchWaitingListRequest
+
+	// Call BindJSON to bind the received JSON to request.
+	if err := c.BindJSON(&request); err != nil {
+		return
+	}
+	
+	if request.CheckinAt == "" && request.CancelAt == "" && request.FinishAt == "" {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "missing data"})
+		return
+	}
+	
+	waitingList := filter(waitingLists, func(waitingList WaitingList) bool { return waitingList.RestaurantId == restaurantId && waitingList.ID == waitingListId })
+	
+	if request.CheckinAt != "" && request.CancelAt == "" && request.FinishAt == "" {
+		updateWatingList(waitingList, func(w WaitingList) { w.CheckinAt = time.Now().String() }, c)
+		return
+	}
+
+	if request.CheckinAt == "" && request.CancelAt != "" && request.FinishAt == "" {
+		updateWatingList(waitingList, func(w WaitingList) { w.CancelAt = time.Now().String() }, c)
+		return
+	}
+
+	if request.CheckinAt == "" && request.CancelAt == "" && request.FinishAt != "" {
+		updateWatingList(waitingList, func(w WaitingList) { w.FinishAt = time.Now().String() }, c)
+		return
+	}
+
+	c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "duplicate data"})
+}
+
+func updateWatingList(list []WaitingList, closure func(WaitingList), responseContext *gin.Context) {
+	if len(list) > 0 {
+		closure(list[0])
+		responseContext.IndentedJSON(http.StatusOK, list[0])
+	} else {
+		responseContext.IndentedJSON(http.StatusNotFound, gin.H{"message": "waitingList not found"})
+	}
+}
+
 func main() {
 	router := gin.Default()
 	router.GET("/restaurants", getRestaurants)
 	router.GET("/restaurants/:id", getRestaurantByID)
 	router.POST("/restaurants/:id/waitingList", postRestaurants)
+	router.PATCH("/restaurants/:id/waitingList/:waitingListId", patchWaitingList)
 
 	router.Run("localhost:8080")
 }

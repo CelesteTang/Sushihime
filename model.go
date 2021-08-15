@@ -13,7 +13,7 @@ type WaitingList struct {
 	ID           string `json:"id"`
 	UserId       string `json:"userId"`
 	RestaurantId string `json:"restaurantId"`
-	Date         string `json:"waitingNumber"`
+	Date         string `json:"date"`
 	Number       int    `json:"number"`
 	WaitingAt    string `json:"waitingAt"`
 	CheckinAt    string `json:"checkinAt"`
@@ -30,5 +30,11 @@ var restaurants = []Restaurant{
 var waitingLists = []WaitingList{}
 
 type WaitingListRequest struct {
-	UserId       string `json:"userId"`
+	UserId string `json:"userId"`
+}
+
+type PatchWaitingListRequest struct {
+	CheckinAt string `json:"checkinAt"`
+	CancelAt  string `json:"cancelAt"`
+	FinishAt  string `json:"finishAt"`
 }
