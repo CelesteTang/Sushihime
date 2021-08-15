@@ -159,12 +159,39 @@ func updateWatingList(list []WaitingList, closure func(WaitingList), responseCon
 	}
 }
 
+func patchRestaurants(c *gin.Context) {
+	id := c.Param("id")
+	var request PatchRestauranttRequest
+
+	// Call BindJSON to bind the received JSON to request.
+	if err := c.BindJSON(&request); err != nil {
+		return
+	}
+ 
+    for index, r := range restaurants {
+        if r.ID == id {
+			vm := RestaurantInfoViewModel {
+				Name: request.Name,
+				IsWaitlineOpen: request.IsWaitlineOpen,
+				WaitingLimit: request.WaitingLimit,
+			}
+			
+			c.IndentedJSON(http.StatusOK, vm)
+			restaurants[index] = r
+			return
+        }
+    }
+
+	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "restaurant not found"})
+}
+
 func main() {
 	router := gin.Default()
 	router.GET("/restaurants", getRestaurants)
 	router.GET("/restaurants/:id", getRestaurantByID)
 	router.POST("/restaurants/:id/waitingList", postWaitingList)
 	router.PATCH("/restaurants/:id/waitingList/:waitingListId", patchWaitingList)
+	router.PATCH("/restaurants/:id", patchRestaurants)
 
 	router.Run("localhost:8080")
 }

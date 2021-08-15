@@ -38,3 +38,9 @@ type PatchWaitingListRequest struct {
 	CancelAt  string `json:"cancelAt"`
 	FinishAt  string `json:"finishAt"`
 }
+
+type PatchRestauranttRequest struct {
+	Name           string `json:"name"`
+	WaitingLimit   int    `json:"waitingLimit"`
+	IsWaitlineOpen bool   `json:"isWaitlineOpen"`
+}

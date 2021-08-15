@@ -20,3 +20,8 @@ type RestaurantDetailViewModel struct {
 	NextCheckinNumber int    `json:"nextCheckinNumber"`
 }
 
+type RestaurantInfoViewModel struct {
+	Name              string `json:"name"`
+	IsWaitlineOpen    bool   `json:"isWaitlineOpen"`
+	WaitingLimit      int    `json:"waitingLimit"`
+}
