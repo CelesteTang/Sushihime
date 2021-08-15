@@ -1,4 +1,4 @@
-package viewModel
+package main
 
 type RestaurantViewModel struct {
 	ID             string `json:"id"`

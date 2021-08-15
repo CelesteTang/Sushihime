@@ -2,8 +2,10 @@ package main
 
 import (
 	"net/http"
-	"time"
+	"sort"
 	"strconv"
+	"time"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -25,9 +27,9 @@ func postRestaurants(c *gin.Context) {
 
 	newWaitingListId := "1"
 	nextCheckinNumber := 0
-	if len(waitingList) > 0 {
-		newWaitingListId = strconv.Itoa(len(waitingList) + 1)
-		waitingListForRestaurant := filter(waitingList, func(waitingList WaitingList) bool { return waitingList.RestaurantId == id })
+	if len(waitingLists) > 0 {
+		newWaitingListId = strconv.Itoa(len(waitingLists) + 1)
+		waitingListForRestaurant := filter(waitingLists, func(waitingList WaitingList) bool { return waitingList.RestaurantId == id })
 		nextCheckinNumber = len(waitingListForRestaurant) + 1
 	}
 	newWaitingList = WaitingList{
@@ -43,7 +45,7 @@ func postRestaurants(c *gin.Context) {
 	}
 
 	// Add the new restaurant to the slice.
-	waitingList = append(waitingList, newWaitingList)
+	waitingLists = append(waitingLists, newWaitingList)
 	c.IndentedJSON(http.StatusCreated, newWaitingList)
 }
 
@@ -68,19 +70,17 @@ func getRestaurantByID(c *gin.Context) {
 	// a restaurant whose ID value matches the parameter.
 	
 	var restaurant Restaurant
-	var allList []WaitingwList
-	var currentWaitingList []WaitingwList
-	var currentCheckingList []WaitingwList
+	var currentWaitingList []WaitingList
+	var currentCheckingList []WaitingList
 
 	for _, r := range restaurants {
 		if r.ID == id {
 			restaurant = r
-			for _, w := waitingLists {
+			for _, w := range waitingLists {
 				if w.RestaurantId == r.ID {
-					allList = append(waitingList, w)
-					if w.CheckinAt == nil && w.CancelAt == nil {
+					if w.CheckinAt == "" && w.CancelAt == "" {
 						currentWaitingList = append(currentWaitingList, w)
-					} else if w.CheckinAt != nil && w.FinishAt == nil {
+					} else if w.CheckinAt != "" && w.FinishAt == "" {
 						currentCheckingList = append(currentCheckingList, w)
 					}
 				}
@@ -92,14 +92,19 @@ func getRestaurantByID(c *gin.Context) {
 		return currentWaitingList[i].Number < currentWaitingList[j].Number
 	})
 
-	vm = RestaurantDetailViewModel struct {
-		Name: restaurant.Name
-		IsWaitlineOpen: restaurant.IsWaitlineOpen
-		WaitingLimit: restaurant.WaitingLimit
-		WaitingCount: len(currentWaitingList)
-		CheckinCount: len(currentCheckingList)
-		CheckinNumber: restaurant.CheckinNumber
-		NextCheckinNumber: currentCheckingList[0].Number
+	nextCheckinNumber := 0
+	if len(currentCheckingList) > 0 {
+		nextCheckinNumber = currentCheckingList[0].Number
+	}
+
+	vm := RestaurantDetailViewModel {
+		Name: restaurant.Name,
+		IsWaitlineOpen: restaurant.IsWaitlineOpen,
+		WaitingLimit: restaurant.WaitingLimit,
+		WaitingCount: len(currentWaitingList),
+		CheckinCount: len(currentCheckingList),
+		CheckinNumber: restaurant.CheckinNumber,
+		NextCheckinNumber: nextCheckinNumber,
 	}
 	
 	c.IndentedJSON(http.StatusOK, vm)
