@@ -17,6 +17,6 @@ type RestaurantDetailViewModel struct {
 	WaitingCount      int    `json:"waitingCount"`
 	CheckinCount      int    `json:"checkinCount"`
 	CheckinNumber     int    `json:"checkinNumber"`
-	NextCheckinNumber int    `json:"checkinNumber"`
+	NextCheckinNumber int    `json:"nextCheckinNumber"`
 }
 
