@@ -66,13 +66,43 @@ func getRestaurantByID(c *gin.Context) {
 
 	// Loop over the list of albums, looking for
 	// a restaurant whose ID value matches the parameter.
-	for _, a := range restaurants {
-		if a.ID == id {
-			c.IndentedJSON(http.StatusOK, a)
-			return
+	
+	var restaurant Restaurant
+	var allList []WaitingwList
+	var currentWaitingList []WaitingwList
+	var currentCheckingList []WaitingwList
+
+	for _, r := range restaurants {
+		if r.ID == id {
+			restaurant = r
+			for _, w := waitingLists {
+				if w.RestaurantId == r.ID {
+					allList = append(waitingList, w)
+					if w.CheckinAt == nil && w.CancelAt == nil {
+						currentWaitingList = append(currentWaitingList, w)
+					} else if w.CheckinAt != nil && w.FinishAt == nil {
+						currentCheckingList = append(currentCheckingList, w)
+					}
+				}
+			}
+			break
 		}
 	}
-	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "restaurant not found"})
+	sort.SliceStable(currentCheckingList, func(i, j int) bool {
+		return currentWaitingList[i].Number < currentWaitingList[j].Number
+	})
+
+	vm = RestaurantDetailViewModel struct {
+		Name: restaurant.Name
+		IsWaitlineOpen: restaurant.IsWaitlineOpen
+		WaitingLimit: restaurant.WaitingLimit
+		WaitingCount: len(currentWaitingList)
+		CheckinCount: len(currentCheckingList)
+		CheckinNumber: restaurant.CheckinNumber
+		NextCheckinNumber: currentCheckingList[0].Number
+	}
+	
+	c.IndentedJSON(http.StatusOK, vm)
 }
 
 func main() {
