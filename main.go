@@ -6,21 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type restaurant struct {
-	ID             string `json:"id"`
-	Name           string `json:"name"`
-	WaitingLimit   int    `json:"waitingLimit"`
-	IsWaitlineOpen bool   `json:"isWaitlineOpen"`
-	CheckinNumber  int    `json:"checkinNumber"`
-	WaitingNumber  int    `json:"waitingNumber"`
-}
-
-var restaurants = []restaurant{
-	{ID: "1", Name: "北車旗艦店", WaitingLimit: 500, IsWaitlineOpen: true, CheckinNumber: 0, WaitingNumber: 0},
-	{ID: "2", Name: "永春店", WaitingLimit: 300, IsWaitlineOpen: true, CheckinNumber: 0, WaitingNumber: 0},
-	{ID: "3", Name: "南港店", WaitingLimit: 250, IsWaitlineOpen: true, CheckinNumber: 0, WaitingNumber: 0},
-}
-
 // getRestaurants responds with the list of all restaurant as JSON.
 func getRestaurants(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, restaurants)
@@ -28,7 +13,7 @@ func getRestaurants(c *gin.Context) {
 
 // postRestaurants adds a restaurant from JSON received in the request body.
 func postRestaurants(c *gin.Context) {
-	var newRestaurant restaurant
+	var newRestaurant Restaurant
 
 	// Call BindJSON to bind the received JSON to newRestaurant.
 	if err := c.BindJSON(&newRestaurant); err != nil {
