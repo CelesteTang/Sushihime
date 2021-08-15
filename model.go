@@ -26,3 +26,9 @@ var restaurants = []Restaurant{
 	{ID: "2", Name: "永春店", WaitingLimit: 300, IsWaitlineOpen: true, CheckinNumber: 0, WaitingNumber: 0},
 	{ID: "3", Name: "南港店", WaitingLimit: 250, IsWaitlineOpen: true, CheckinNumber: 0, WaitingNumber: 0},
 }
+
+var waitingList = []WaitingList{}
+
+type WaitingListRequest struct {
+	UserId       string `json:"userId"`
+}

@@ -2,7 +2,8 @@ package main
 
 import (
 	"net/http"
-
+	"time"
+	"strconv"
 	"github.com/gin-gonic/gin"
 )
 
@@ -11,18 +12,51 @@ func getRestaurants(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, restaurants)
 }
 
-// postRestaurants adds a restaurant from JSON received in the request body.
+// postRestaurants adds a var waitingList = []WaitingList{} from JSON received in the request body.
 func postRestaurants(c *gin.Context) {
-	var newRestaurant Restaurant
+	id := c.Param("id")
+	var request WaitingListRequest
+	var newWaitingList WaitingList
 
 	// Call BindJSON to bind the received JSON to newRestaurant.
-	if err := c.BindJSON(&newRestaurant); err != nil {
+	if err := c.BindJSON(&request); err != nil {
 		return
 	}
 
+	newWaitingListId := "1"
+	nextCheckinNumber := 0
+	if len(waitingList) > 0 {
+		newWaitingListId = strconv.Itoa(len(waitingList) + 1)
+		waitingListForRestaurant := filter(waitingList, func(waitingList WaitingList) bool { return waitingList.RestaurantId == id })
+		nextCheckinNumber = len(waitingListForRestaurant) + 1
+	}
+	newWaitingList = WaitingList{
+		ID: newWaitingListId,
+		UserId: request.UserId,
+		RestaurantId: id,
+		Date: time.Now().String(),
+		Number: nextCheckinNumber,
+		WaitingAt: "",
+		CheckinAt: "",
+		CancelAt: "",
+		FinishAt: "",
+	}
+
 	// Add the new restaurant to the slice.
-	restaurants = append(restaurants, newRestaurant)
-	c.IndentedJSON(http.StatusCreated, newRestaurant)
+	waitingList = append(waitingList, newWaitingList)
+	c.IndentedJSON(http.StatusCreated, newWaitingList)
+}
+
+func filter(arr []WaitingList, predicate func(WaitingList) bool) []WaitingList {
+    out := make([]WaitingList, 0)
+ 
+    for _, e := range arr {
+        if predicate(e) {
+            out = append(out, e)
+        }
+    }
+ 
+    return out
 }
 
 // getRestaurantByID locates the restaurant whose ID value matches the id
@@ -45,7 +79,7 @@ func main() {
 	router := gin.Default()
 	router.GET("/restaurants", getRestaurants)
 	router.GET("/restaurants/:id", getRestaurantByID)
-	router.POST("/restaurants", postRestaurants)
+	router.POST("/restaurants/:id/waitingList", postRestaurants)
 
 	router.Run("localhost:8080")
 }
