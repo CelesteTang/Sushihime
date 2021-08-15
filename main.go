@@ -11,11 +11,16 @@ import (
 
 // getRestaurants responds with the list of all restaurant as JSON.
 func getRestaurants(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, restaurants)
+
+	var vm RestaurantViewModel
+	for _, r := range restaurants {
+		vm = append(vm, RestaurantViewModel{ID: r.ID, name: r.name} )
+	}
+	c.IndentedJSON(http.StatusOK, vm)
 }
 
-// postRestaurants adds a var waitingList = []WaitingList{} from JSON received in the request body.
-func postRestaurants(c *gin.Context) {
+// postWaitingList adds a var waitingList = []WaitingList{} from JSON received in the request body.
+func postWaitingList(c *gin.Context) {
 	id := c.Param("id")
 	var request WaitingListRequest
 	var newWaitingList WaitingList
@@ -46,7 +51,7 @@ func postRestaurants(c *gin.Context) {
 
 	// Add the new restaurant to the slice.
 	waitingLists = append(waitingLists, newWaitingList)
-	c.IndentedJSON(http.StatusCreated, newWaitingList)
+	c.IndentedJSON(http.StatusCreated, WaitingListViewModel{ WaitingListId: newWaitingListId, Number: nextCheckinNumber})
 }
 
 func filter(arr []WaitingList, predicate func(WaitingList) bool) []WaitingList {
@@ -114,7 +119,7 @@ func main() {
 	router := gin.Default()
 	router.GET("/restaurants", getRestaurants)
 	router.GET("/restaurants/:id", getRestaurantByID)
-	router.POST("/restaurants/:id/waitingList", postRestaurants)
+	router.POST("/restaurants/:id/waitingList", postWaitingList)
 
 	router.Run("localhost:8080")
 }
